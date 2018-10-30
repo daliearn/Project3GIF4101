@@ -1,219 +1,186 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "# -*- coding: utf-8 -*-\n",
-    "###############################################################################\n",
-    "# Apprentissage et reconnaissance\n",
-    "# GIF-4101 / GIF-7005, Automne 2018\n",
-    "# Devoir 3, Question 3\n",
-    "#\n",
-    "###############################################################################\n",
-    "############################## INSTRUCTIONS ###################################\n",
-    "###############################################################################\n",
-    "#\n",
-    "# - RepÃ©rez les commentaires commenÃ§ant par TODO : ils indiquent une tÃ¢che que\n",
-    "#       vous devez effectuer.\n",
-    "# - Vous ne pouvez PAS changer la structure du code, importer d'autres\n",
-    "#       modules / sous-modules, ou ajouter d'autres fichiers Python\n",
-    "# - Ne touchez pas aux variables, TMAX*, ERRMAX* et _times, Ã  la fonction\n",
-    "#       checkTime, ni aux conditions vÃ©rifiant le bon fonctionnement de votre \n",
-    "#       code. Ces structures vous permettent de savoir rapidement si vous ne \n",
-    "#       respectez pas les requis minimum pour une question en particulier. \n",
-    "#       Toute sous-question n'atteignant pas ces minimums se verra attribuer \n",
-    "#       la note de zÃ©ro (0) pour la partie implÃ©mentation!\n",
-    "#\n",
-    "###############################################################################\n",
-    "\n",
-    "import time\n",
-    "import numpy\n",
-    "\n",
-    "from scipy.optimize import fmin_l_bfgs_b\n",
-    "from scipy.spatial.distance import cdist\n",
-    "\n",
-    "from sklearn.datasets import make_moons\n",
-    "from sklearn.model_selection import train_test_split\n",
-    "\n",
-    "from matplotlib import pyplot\n",
-    "\n",
-    "\n",
-    "# Fonctions utilitaires liÃ©es Ã  l'Ã©valuation\n",
-    "_times = []\n",
-    "def checkTime(maxduration, question):\n",
-    "    duration = _times[-1] - _times[-2]\n",
-    "    if duration > maxduration:\n",
-    "        print(\"[ATTENTION] Votre code pour la question {0} met trop de temps Ã  s'exÃ©cuter! \".format(question)+\n",
-    "            \"Le temps maximum permis est de {0:.4f} secondes, mais votre code a requis {1:.4f} secondes! \".format(maxduration,duration)+\n",
-    "            \"Assurez-vous que vous ne faites pas d'appels bloquants (par exemple Ã  show()) dans cette boucle!\") \n",
-    "\n",
-    "# DÃ©finition des durÃ©es d'exÃ©cution maximales pour chaque sous-question\n",
-    "TMAX_FIT = 2.0\n",
-    "TMAX_EVAL = 3.0\n",
-    "\n",
-    "\n",
-    "# Ne modifiez rien avant cette ligne!\n",
-    "\n",
-    "\n",
-    "# Question 3B\n",
-    "# ImplÃ©mentation du discriminant Ã  noyau\n",
-    "class DiscriminantANoyau:\n",
-    "\n",
-    "    def __init__(self, lambda_, sigma):\n",
-    "        # Cette fonction est dÃ©jÃ  codÃ©e pour vous, vous n'avez qu'Ã  utiliser\n",
-    "        # les variables membres qu'elle dÃ©finit dans les autres fonctions de\n",
-    "        # cette classe.\n",
-    "        # Lambda et sigma sont dÃ©finis dans l'Ã©noncÃ©.\n",
-    "        self.lambda_ = lambda_\n",
-    "        self.sigma = sigma\n",
-    "    \n",
-    "    def fit(self, X, y):\n",
-    "        # ImplÃ©mentez la fonction d'entraÃ®nement du classifieur, selon\n",
-    "        # les Ã©quations que vous avez dÃ©veloppÃ©es dans votre rapport.\n",
-    "\n",
-    "        # TODO Q3B\n",
-    "        # Vous devez Ã©crire une fonction nommÃ©e evaluateFunc,\n",
-    "        # qui reÃ§oit un seul argument en paramÃ¨tre, qui correspond aux\n",
-    "        # valeurs des paramÃ¨tres pour lesquels on souhaite connaÃ®tre\n",
-    "        # l'erreur et le gradient d'erreur pour chaque paramÃ¨tre.\n",
-    "        # Cette fonction sera appelÃ©e Ã  rÃ©pÃ©tition par l'optimiseur\n",
-    "        # de scipy, qui l'utilisera pour minimiser l'erreur et obtenir\n",
-    "        # un jeu de paramÃ¨tres optimal.\n",
-    "       \n",
-    "        def evaluateFunc(hypers):\n",
-    "\n",
-    "            return err, grad\n",
-    "        \n",
-    "        # TODO Q3B\n",
-    "        # Initialisez alÃ©atoirement les paramÃ¨tres alpha et omega0\n",
-    "        # (l'optimiseur requiert un \"initial guess\", et nous ne pouvons pas\n",
-    "        # simplement n'utiliser que des zÃ©ros pour diffÃ©rentes raisons).\n",
-    "        # Stochez ces valeurs initiales alÃ©atoires dans un array numpy nommÃ©\n",
-    "        # \"params\"\n",
-    "        # DÃ©terminez Ã©galement les bornes Ã  utiliser sur ces paramÃ¨tres\n",
-    "        # et stockez les dans une variable nommÃ©e \"bounds\".\n",
-    "        # Indice : les paramÃ¨tres peuvent-ils avoir une valeur maximale (au-\n",
-    "        # dessus de laquelle ils ne veulent plus rien dire)? Une valeur\n",
-    "        # minimale? RÃ©fÃ©rez-vous Ã  la documentation de fmin_l_bfgs_b\n",
-    "        # pour savoir comment indiquer l'absence de bornes.\n",
-    "       \n",
-    "\n",
-    "        # Ã€ ce stade, trois choses devraient Ãªtre dÃ©finies :\n",
-    "        # - Une fonction d'Ã©valuation nommÃ©e evaluateFunc, capable de retourner\n",
-    "        #   l'erreur et le gradient d'erreur pour chaque paramÃ¨tre pour une\n",
-    "        #   configuration de paramÃ¨tres alpha et omega_0 donnÃ©e.\n",
-    "        # - Un tableau numpy nommÃ© params de mÃªme taille que le nombre de\n",
-    "        #   paramÃ¨tres Ã  entraÃ®ner.\n",
-    "        # - Une liste nommÃ©e bounds contenant les bornes que l'optimiseur doit \n",
-    "        #   respecter pour chaque paramÃ¨tre\n",
-    "        # On appelle maintenant l'optimiseur avec ces informations et on stocke\n",
-    "        # les valeurs optimisÃ©es dans params\n",
-    "        _times.append(time.time())\n",
-    "        params, minval, infos = fmin_l_bfgs_b(evaluateFunc, params, bounds=bounds)\n",
-    "        _times.append(time.time())\n",
-    "        checkTime(TMAX_FIT, \"Entrainement\")\n",
-    "\n",
-    "        # On affiche quelques statistiques\n",
-    "        print(\"EntraÃ®nement terminÃ© aprÃ¨s {it} itÃ©rations et \"\n",
-    "                \"{calls} appels Ã  evaluateFunc\".format(it=infos['nit'], calls=infos['funcalls']))\n",
-    "        print(\"\\tErreur minimale : {:.5f}\".format(minval))\n",
-    "        print(\"\\tL'algorithme a convergÃ©\" if infos['warnflag'] == 0 else \"\\tL'algorithme n'a PAS convergÃ©\")\n",
-    "        print(\"\\tGradients des paramÃ¨tres Ã  la convergence (ou Ã  l'Ã©puisement des ressources) :\")\n",
-    "        print(infos['grad'])\n",
-    "\n",
-    "        # TODO Q3B\n",
-    "        # Stockez les paramÃ¨tres optimisÃ©s de la faÃ§on suivante\n",
-    "        # - Le vecteur alpha dans self.alphas\n",
-    "        # - Le biais omega0 dans self.w0\n",
-    "\n",
-    "\n",
-    "\n",
-    "        # On retient Ã©galement le jeu d'entraÃ®nement, qui pourra\n",
-    "        # vous Ãªtre utile pour les autres fonctions Ã  implÃ©menter\n",
-    "        self.X, self.y = X, y\n",
-    "    \n",
-    "    def predict(self, X):\n",
-    "        # TODO Q3B\n",
-    "        # ImplÃ©mentez la fonction de prÃ©diction\n",
-    "        # Vous pouvez supposer que fit() a prÃ©alablement Ã©tÃ© exÃ©cutÃ©\n",
-    "        # et que les variables membres alphas, w0, X et y existent.\n",
-    "        # N'oubliez pas que ce classifieur doit retourner -1 ou 1\n",
-    "\n",
-    "    \n",
-    "    def score(self, X, y):\n",
-    "        # TODO Q3B\n",
-    "        # ImplÃ©mentez la fonction retournant le score (accuracy)\n",
-    "        # du classifieur sur les donnÃ©es reÃ§ues en argument.\n",
-    "        # Vous pouvez supposer que fit() a prÃ©alablement Ã©tÃ© exÃ©cutÃ©\n",
-    "        # Indice : rÃ©utiliser votre implÃ©mentation de predict() rÃ©duit de\n",
-    "        # beaucoup la taille de cette fonction!\n",
-    "\n",
-    "\n",
-    "\n",
-    "if __name__ == \"__main__\":\n",
-    "    # Question 3B\n",
-    "\n",
-    "    # TODO Q3B\n",
-    "    # CrÃ©ez le jeu de donnÃ©es Ã  partir de la fonction make_moons, tel que\n",
-    "    # demandÃ© dans l'Ã©noncÃ©\n",
-    "    # N'oubliez pas de vous assurer que les valeurs possibles de y sont\n",
-    "    # bel et bien -1 et 1, et non 0 et 1!\n",
-    "\n",
-    "    \n",
-    "    # TODO Q3B\n",
-    "    # SÃ©parez le jeu de donnÃ©es en deux parts Ã©gales, l'une pour l'entraÃ®nement\n",
-    "    # et l'autre pour le test\n",
-    "    \n",
-    "    _times.append(time.time())\n",
-    "    # TODO Q3B\n",
-    "    # Une fois les paramÃ¨tres lambda et sigma de votre classifieur optimisÃ©s,\n",
-    "    # crÃ©ez une instance de ce classifieur en utilisant ces paramÃ¨tres optimaux,\n",
-    "    # et calculez sa performance sur le jeu de test.\n",
-    "\n",
-    "\n",
-    "    \n",
-    "    # TODO Q3B\n",
-    "    # CrÃ©ez ici une grille permettant d'afficher les rÃ©gions de\n",
-    "    # dÃ©cision pour chaque classifieur\n",
-    "    # Indice : numpy.meshgrid pourrait vous Ãªtre utile ici\n",
-    "    # Par la suite, affichez les rÃ©gions de dÃ©cision dans la mÃªme figure\n",
-    "    # que les donnÃ©es de test.\n",
-    "    # Note : utilisez un pas de 0.02 pour le meshgrid\n",
-    "   \n",
-    "    \n",
-    "    \n",
-    "\n",
-    "\n",
-    "    # On affiche la figure\n",
-    "    # _times.append(time.time())\n",
-    "    checkTime(TMAX_FIT, \"Evaluation\")\n",
-    "    pyplot.show()\n",
-    "# N'Ã©crivez pas de code Ã  partir de cet endroit\n"
-   ]
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "Python 3",
-   "language": "python",
-   "name": "python3"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.6.6"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 2
-}
+# -*- coding: utf-8 -*-
+###############################################################################
+# Apprentissage et reconnaissance
+# GIF-4101 / GIF-7005, Automne 2018
+# Devoir 3, Question 3
+#
+###############################################################################
+############################## INSTRUCTIONS ###################################
+###############################################################################
+#
+# - Repérez les commentaires commençant par TODO : ils indiquent une tâche que
+#       vous devez effectuer.
+# - Vous ne pouvez PAS changer la structure du code, importer d'autres
+#       modules / sous-modules, ou ajouter d'autres fichiers Python
+# - Ne touchez pas aux variables, TMAX*, ERRMAX* et _times, à la fonction
+#       checkTime, ni aux conditions vérifiant le bon fonctionnement de votre 
+#       code. Ces structures vous permettent de savoir rapidement si vous ne 
+#       respectez pas les requis minimum pour une question en particulier. 
+#       Toute sous-question n'atteignant pas ces minimums se verra attribuer 
+#       la note de zéro (0) pour la partie implémentation!
+#
+###############################################################################
+
+import time
+import numpy
+
+from scipy.optimize import fmin_l_bfgs_b
+from scipy.spatial.distance import cdist
+
+from sklearn.datasets import make_moons
+from sklearn.model_selection import train_test_split
+
+from matplotlib import pyplot
+
+
+# Fonctions utilitaires liées à l'évaluation
+_times = []
+def checkTime(maxduration, question):
+    duration = _times[-1] - _times[-2]
+    if duration > maxduration:
+        print("[ATTENTION] Votre code pour la question {0} met trop de temps à s'exécuter! ".format(question)+
+            "Le temps maximum permis est de {0:.4f} secondes, mais votre code a requis {1:.4f} secondes! ".format(maxduration,duration)+
+            "Assurez-vous que vous ne faites pas d'appels bloquants (par exemple à show()) dans cette boucle!") 
+
+# Définition des durées d'exécution maximales pour chaque sous-question
+TMAX_FIT = 2.0
+TMAX_EVAL = 3.0
+
+
+# Ne modifiez rien avant cette ligne!
+
+
+# Question 3B
+# Implémentation du discriminant à noyau
+class DiscriminantANoyau:
+
+    def __init__(self, lambda_, sigma):
+        # Cette fonction est déjà codée pour vous, vous n'avez qu'à utiliser
+        # les variables membres qu'elle définit dans les autres fonctions de
+        # cette classe.
+        # Lambda et sigma sont définis dans l'énoncé.
+        self.lambda_ = lambda_
+        self.sigma = sigma
+    
+    def fit(self, X, y):
+        # Implémentez la fonction d'entraînement du classifieur, selon
+        # les équations que vous avez développées dans votre rapport.
+
+        # TODO Q3B
+        # Vous devez écrire une fonction nommée evaluateFunc,
+        # qui reçoit un seul argument en paramètre, qui correspond aux
+        # valeurs des paramètres pour lesquels on souhaite connaître
+        # l'erreur et le gradient d'erreur pour chaque paramètre.
+        # Cette fonction sera appelée à répétition par l'optimiseur
+        # de scipy, qui l'utilisera pour minimiser l'erreur et obtenir
+        # un jeu de paramètres optimal.
+       
+        def evaluateFunc(hypers):
+
+            return err, grad
+        
+        # TODO Q3B
+        # Initialisez aléatoirement les paramètres alpha et omega0
+        # (l'optimiseur requiert un "initial guess", et nous ne pouvons pas
+        # simplement n'utiliser que des zéros pour différentes raisons).
+        # Stochez ces valeurs initiales aléatoires dans un array numpy nommé
+        # "params"
+        # Déterminez également les bornes à utiliser sur ces paramètres
+        # et stockez les dans une variable nommée "bounds".
+        # Indice : les paramètres peuvent-ils avoir une valeur maximale (au-
+        # dessus de laquelle ils ne veulent plus rien dire)? Une valeur
+        # minimale? Référez-vous à la documentation de fmin_l_bfgs_b
+        # pour savoir comment indiquer l'absence de bornes.
+       
+
+        # À ce stade, trois choses devraient être définies :
+        # - Une fonction d'évaluation nommée evaluateFunc, capable de retourner
+        #   l'erreur et le gradient d'erreur pour chaque paramètre pour une
+        #   configuration de paramètres alpha et omega_0 donnée.
+        # - Un tableau numpy nommé params de même taille que le nombre de
+        #   paramètres à entraîner.
+        # - Une liste nommée bounds contenant les bornes que l'optimiseur doit 
+        #   respecter pour chaque paramètre
+        # On appelle maintenant l'optimiseur avec ces informations et on stocke
+        # les valeurs optimisées dans params
+        _times.append(time.time())
+        params, minval, infos = fmin_l_bfgs_b(evaluateFunc, params, bounds=bounds)
+        _times.append(time.time())
+        checkTime(TMAX_FIT, "Entrainement")
+
+        # On affiche quelques statistiques
+        print("Entraînement terminé après {it} itérations et "
+                "{calls} appels à evaluateFunc".format(it=infos['nit'], calls=infos['funcalls']))
+        print("\tErreur minimale : {:.5f}".format(minval))
+        print("\tL'algorithme a convergé" if infos['warnflag'] == 0 else "\tL'algorithme n'a PAS convergé")
+        print("\tGradients des paramètres à la convergence (ou à l'épuisement des ressources) :")
+        print(infos['grad'])
+
+        # TODO Q3B
+        # Stockez les paramètres optimisés de la façon suivante
+        # - Le vecteur alpha dans self.alphas
+        # - Le biais omega0 dans self.w0
+
+
+
+        # On retient également le jeu d'entraînement, qui pourra
+        # vous être utile pour les autres fonctions à implémenter
+        self.X, self.y = X, y
+    
+    def predict(self, X):
+        # TODO Q3B
+        # Implémentez la fonction de prédiction
+        # Vous pouvez supposer que fit() a préalablement été exécuté
+        # et que les variables membres alphas, w0, X et y existent.
+        # N'oubliez pas que ce classifieur doit retourner -1 ou 1
+
+    
+    def score(self, X, y):
+        # TODO Q3B
+        # Implémentez la fonction retournant le score (accuracy)
+        # du classifieur sur les données reçues en argument.
+        # Vous pouvez supposer que fit() a préalablement été exécuté
+        # Indice : réutiliser votre implémentation de predict() réduit de
+        # beaucoup la taille de cette fonction!
+
+
+
+if __name__ == "__main__":
+    # Question 3B
+
+    # TODO Q3B
+    # Créez le jeu de données à partir de la fonction make_moons, tel que
+    # demandé dans l'énoncé
+    # N'oubliez pas de vous assurer que les valeurs possibles de y sont
+    # bel et bien -1 et 1, et non 0 et 1!
+
+    
+    # TODO Q3B
+    # Séparez le jeu de données en deux parts égales, l'une pour l'entraînement
+    # et l'autre pour le test
+    
+    _times.append(time.time())
+    # TODO Q3B
+    # Une fois les paramètres lambda et sigma de votre classifieur optimisés,
+    # créez une instance de ce classifieur en utilisant ces paramètres optimaux,
+    # et calculez sa performance sur le jeu de test.
+
+
+    
+    # TODO Q3B
+    # Créez ici une grille permettant d'afficher les régions de
+    # décision pour chaque classifieur
+    # Indice : numpy.meshgrid pourrait vous être utile ici
+    # Par la suite, affichez les régions de décision dans la même figure
+    # que les données de test.
+    # Note : utilisez un pas de 0.02 pour le meshgrid
+   
+    
+    
+
+
+    # On affiche la figure
+    # _times.append(time.time())
+    checkTime(TMAX_FIT, "Evaluation")
+    pyplot.show()
+# N'écrivez pas de code à partir de cet endroit
