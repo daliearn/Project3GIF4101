@@ -125,7 +125,7 @@ if __name__ == "__main__":
     _times.append(time.time())
     # TODO Q2B
     # Optimisez ici la paramÃ©trisation du kPP
-    '''
+    
     kvalues = numpy.arange(1,30)
     weights = ['uniform', 'distance']
     scoresKNN = numpy.zeros((len(kvalues), len(weights)))
@@ -140,29 +140,35 @@ if __name__ == "__main__":
                 score += clf.score(X_train[validate_index,:], y_train[validate_index])
             score = score/10.0
             scoresKNN[i,j] = score
-    '''
+    
+    maxIndxKNN = (numpy.argmax(scoresKNN)%scoresKNN.shape[0],
+               numpy.argmax(scoresKNN) - (numpy.argmax(scoresKNN)%scoresKNN.shape[0])*scoresKNN.shape[1])
+    
     _times.append(time.time())
     checkTime(TMAX_KNN, "K plus proches voisins")
     # TODO Q2B
     # Optimisez ici la paramÃ©trisation du SVM Ã  noyau gaussien
-    '''
+    
     C = list(map(lambda x: 10**float(x) , numpy.arange(10) - 5))    
-    max_iter = list(map(lambda x: 3000 * x, [1]))
+    max_iter = list(map(lambda x: 1000 * x, [1]))
     #Gamma ?
     scoresSVM = numpy.zeros((len(C), len(max_iter)))
     
     for i in range(len(C)):
         for j in range(len(max_iter)):
             print(max_iter[j])
-            kf = KFold(n_splits=10)
+            kf = KFold(n_splits=5)
             score = 0
             for train_index, validate_index in kf.split(X_train):    
                 clf = SVC(C=C[i], max_iter=max_iter[j], gamma = 'scale')
                 clf.fit(X_train[train_index,:], y_train[train_index])
                 score += clf.score(X_train[validate_index,:], y_train[validate_index])
-            score = score/10.0
+            score = score/5.0
             scoresSVM[i,j] = score
-    '''
+            
+    maxIndxSVM = (numpy.argmax(scoresSVM)%scoresSVM.shape[0],
+               numpy.argmax(scoresSVM) - (numpy.argmax(scoresSVM)%scoresSVM.shape[0])*scoresSVM.shape[1])
+    
 
 
     _times.append(time.time())
@@ -178,15 +184,33 @@ if __name__ == "__main__":
     
     #itertools.combinations_with_replacement([1,2,3,4,5], 5)
     nbMaxLayers = numpy.arange(1,5) 
-    nbMaxNeurons = numpy.arange(1,4)
+    nbMaxNeurons = numpy.arange(2,12) * 4
     
-    scores = numpy.array([])
+    scoresNN = numpy.zeros((len(nbMaxLayers), len(nbMaxNeurons)))
+    
+    
+    for i in nbMaxLayers:
+        print(i)
+        for j in range(len(nbMaxNeurons)):
+            kf = KFold(n_splits=3)
+            score = 0
+            for train_index, validate_index in kf.split(X_train):    
+                clf = MLPClassifier(hidden_layer_sizes=tuple(numpy.ones(i, dtype=numpy.int8) * nbMaxNeurons[j]), max_iter=100, activation='logistic')
+                clf.fit(X_train[train_index,:], y_train[train_index])
+                score += clf.score(X_train[validate_index,:], y_train[validate_index])
+            score = score/3.0
+            scoresNN[i-1,j-1] = score
+            
+    maxIndxNN = (numpy.argmax(scoresNN)%scoresNN.shape[0],
+               numpy.argmax(scoresNN) - (numpy.argmax(scoresNN)%scoresNN.shape[0])*scoresNN.shape[1])
+    
+    
+    '''
     neoronShapes = numpy.array([])
     for i in nbMaxLayers:
         for j in nbMaxNeurons:
             for neuronShape in itertools.combinations_with_replacement(numpy.arange(1,j+1), i+1):
                 print(neuronShape)
-                '''
                 kf = KFold(n_splits=3)
                 score = 0
                 for train_index, validate_index in kf.split(X_train):    
@@ -194,12 +218,11 @@ if __name__ == "__main__":
                     clf.fit(X_train[train_index,:], y_train[train_index])
                     score += clf.score(X_train[validate_index,:], y_train[validate_index])
                 score = score/3.0
-                '''
                 clf = MLPClassifier(hidden_layer_sizes=neuronShape, max_iter=100, activation='logistic')
                 clf.fit(X_train, y_train)
                 score = clf.score(X_train, y_train)
                 scores = numpy.append(scores, score)
-                
+    '''
 
     _times.append(time.time())
     checkTime(TMAX_PERCEPTRON, "SVM")
@@ -208,7 +231,17 @@ if __name__ == "__main__":
     # TODO Q2B
     # Ã‰valuez les performances des meilleures paramÃ©trisations sur le jeu de test
     # et rapportez ces performances dans le rapport
+    clf = KNeighborsClassifier(n_neighbors=kvalues[maxIndxKNN[0]], weights=weights[maxIndxKNN[1]])
+    clf.fit(X_train, y_train)
+    print('KNN : ' + str(clf.score(X_test, y_test)))
     
+    clf = SVC(C=C[maxIndxSVM[0]], max_iter=max_iter[maxIndxSVM[1]], gamma = 'scale')
+    clf.fit(X_train, y_train)
+    print('SVM : ' + str(clf.score(X_test, y_test)))
+    
+    clf = MLPClassifier(hidden_layer_sizes=tuple(numpy.ones(nbMaxLayers[maxIndxNN[0]], dtype=numpy.int8) * nbMaxNeurons[maxIndxNN[1]]), max_iter=100, activation='logistic')
+    clf.fit(X_train, y_train)
+    print('SVM : ' + str(clf.score(X_test, y_test)))
     
 
     _times.append(time.time())
