@@ -36,6 +36,10 @@ from matplotlib import pyplot
 # Fonctions utilitaires liÃ©es Ã  l'Ã©valuation
 _times = []
 def checkTime(maxduration, question):
+    
+    _times.append(time.time())
+    _times.append(time.time())
+    
     duration = _times[-1] - _times[-2]
     if duration > maxduration:
         print("[ATTENTION] Votre code pour la question {0} met trop de temps Ã  s'exÃ©cuter! ".format(question)+
@@ -65,7 +69,9 @@ class DiscriminantANoyau:
     def fit(self, X, y):
         # ImplÃ©mentez la fonction d'entraÃ®nement du classifieur, selon
         # les Ã©quations que vous avez dÃ©veloppÃ©es dans votre rapport.
-
+        X = numpy.array(X)
+        y = numpy.array(y)
+    
         # TODO Q3B
         # Vous devez Ã©crire une fonction nommÃ©e evaluateFunc,
         # qui reÃ§oit un seul argument en paramÃ¨tre, qui correspond aux
@@ -75,8 +81,35 @@ class DiscriminantANoyau:
         # de scipy, qui l'utilisera pour minimiser l'erreur et obtenir
         # un jeu de paramÃ¨tres optimal.
        
+        #Tu peux juste calculer une matrice triangulaire btw
+        K = cdist(X_train, X_train)
+        K = K / self.sigma
+        K = K ** 2
+        K = numpy.exp(K)
+        
+        
+        for t in range(len(X)):
+            K[t,:] = K[t,:] * y
+        
+        
         def evaluateFunc(hypers):
-
+            alphas = numpy.array(hypers[0:-1])
+            omega = hypers[-1]
+            
+            h = numpy.zeros((len(alphas)))
+            for t in range(len(alphas)):
+                h[t] = numpy.sum(alphas[t] * K[t,:]) + omega
+            
+            
+            idx = numpy.where(y * h < 1)
+            e = numpy.zeros((len(idx)))
+            e = 1 - numpy.array(y)[idx[0]] * numpy.array(h)[idx[0]]
+            err = numpy.sum(e) + self.lambda_ * numpy.sum(numpy.array(alphas)[idx[0]])
+            
+            grad = numpy.zeros(hypers.shape)
+            grad[idx[0]] = self.lambda_ - 1
+            grad[-1] = - numpy.sum(numpy.array(y)[idx[0]])
+            
             return err, grad
         
         # TODO Q3B
@@ -85,13 +118,15 @@ class DiscriminantANoyau:
         # simplement n'utiliser que des zÃ©ros pour diffÃ©rentes raisons).
         # Stochez ces valeurs initiales alÃ©atoires dans un array numpy nommÃ©
         # "params"
+        params = numpy.random.rand(len(X) + 1)
         # DÃ©terminez Ã©galement les bornes Ã  utiliser sur ces paramÃ¨tres
         # et stockez les dans une variable nommÃ©e "bounds".
         # Indice : les paramÃ¨tres peuvent-ils avoir une valeur maximale (au-
         # dessus de laquelle ils ne veulent plus rien dire)? Une valeur
         # minimale? RÃ©fÃ©rez-vous Ã  la documentation de fmin_l_bfgs_b
         # pour savoir comment indiquer l'absence de bornes.
-       
+        bounds = list(map(lambda x: (0, None), numpy.zeros((len(X)))))
+        bounds.append((None,None))
 
         # Ã€ ce stade, trois choses devraient Ãªtre dÃ©finies :
         # - Une fonction d'Ã©valuation nommÃ©e evaluateFunc, capable de retourner
@@ -104,7 +139,9 @@ class DiscriminantANoyau:
         # On appelle maintenant l'optimiseur avec ces informations et on stocke
         # les valeurs optimisÃ©es dans params
         _times.append(time.time())
+        
         params, minval, infos = fmin_l_bfgs_b(evaluateFunc, params, bounds=bounds)
+        #params, minval, infos = fmin_l_bfgs_b(evaluateFunc, params, bounds=bounds)
         _times.append(time.time())
         checkTime(TMAX_FIT, "Entrainement")
 
@@ -120,8 +157,8 @@ class DiscriminantANoyau:
         # Stockez les paramÃ¨tres optimisÃ©s de la faÃ§on suivante
         # - Le vecteur alpha dans self.alphas
         # - Le biais omega0 dans self.w0
-
-
+        self.alpha = params[0:-1]
+        self.omega0 = params[-1:]
 
         # On retient Ã©galement le jeu d'entraÃ®nement, qui pourra
         # vous Ãªtre utile pour les autres fonctions Ã  implÃ©menter
@@ -133,8 +170,19 @@ class DiscriminantANoyau:
         # Vous pouvez supposer que fit() a prÃ©alablement Ã©tÃ© exÃ©cutÃ©
         # et que les variables membres alphas, w0, X et y existent.
         # N'oubliez pas que ce classifieur doit retourner -1 ou 1
-
-    
+        K = cdist(numpy.array(X), self.X)
+        K = K / self.sigma
+        K = K ** 2
+        K = numpy.exp(K)
+        for t in range(len(X)):
+            K[t,:] = K[t,:] * self.y
+        
+        h = numpy.zeros((len(X)))
+        for t in range(len(X)):
+            h[t] = numpy.sum(self.alpha * K[t,:]) + self.omega0
+        
+        return numpy.sign(h)
+        
     def score(self, X, y):
         # TODO Q3B
         # ImplÃ©mentez la fonction retournant le score (accuracy)
@@ -142,7 +190,7 @@ class DiscriminantANoyau:
         # Vous pouvez supposer que fit() a prÃ©alablement Ã©tÃ© exÃ©cutÃ©
         # Indice : rÃ©utiliser votre implÃ©mentation de predict() rÃ©duit de
         # beaucoup la taille de cette fonction!
-
+        pass
 
 
 if __name__ == "__main__":
@@ -153,19 +201,26 @@ if __name__ == "__main__":
     # demandÃ© dans l'Ã©noncÃ©
     # N'oubliez pas de vous assurer que les valeurs possibles de y sont
     # bel et bien -1 et 1, et non 0 et 1!
-
+    data = make_moons(1000, 0.3)
+    X = data[0]
+    y = list(map(lambda x: 1 if x == 1 else -1,data[1]))
     
     # TODO Q3B
     # SÃ©parez le jeu de donnÃ©es en deux parts Ã©gales, l'une pour l'entraÃ®nement
     # et l'autre pour le test
+    X_train = X[0:int(len(X)/2),:]
+    y_train = y[0:int(len(y)/2)]
+    X_test = X[int(len(X)/2):len(X),:]
+    y_test = y[int(len(y)/2):len(y)]
+    
     
     _times.append(time.time())
     # TODO Q3B
     # Une fois les paramÃ¨tres lambda et sigma de votre classifieur optimisÃ©s,
     # crÃ©ez une instance de ce classifieur en utilisant ces paramÃ¨tres optimaux,
     # et calculez sa performance sur le jeu de test.
-
-
+    clf = DiscriminantANoyau(0.1, 1)
+    clf.fit(X_train, y_train)
     
     # TODO Q3B
     # CrÃ©ez ici une grille permettant d'afficher les rÃ©gions de
@@ -174,7 +229,21 @@ if __name__ == "__main__":
     # Par la suite, affichez les rÃ©gions de dÃ©cision dans la mÃªme figure
     # que les donnÃ©es de test.
     # Note : utilisez un pas de 0.02 pour le meshgrid
-   
+    f, (ax1) = pyplot.subplots(1, 1, sharex=True)        
+
+    x1 = numpy.arange(min(X_test[:,0]), max(X_test[:,0]), 0.02)
+    x2 = numpy.arange(min(X_test[:,1]), max(X_test[:,1]), 0.02)
+    xx, yy = numpy.meshgrid(x1, x2)            
+    
+    pred = clf.predict(numpy.c_[xx.ravel(), yy.ravel()])
+    pred = pred.reshape(xx.shape)
+    cs = ax1.contourf(xx, yy, pred, cmap=pyplot.cm.Paired)
+            
+    colors = "brg"
+    for i in numpy.unique(y_test) : 
+        indexes = numpy.where(y_test == i)
+        ax1.plot(X_test[indexes,0], X_test[indexes,1], '+', c = colors[i])
+        
     
     
 

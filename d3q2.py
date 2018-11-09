@@ -156,14 +156,13 @@ if __name__ == "__main__":
     
     for i in range(len(C)):
         for j in range(len(max_iter)):
-            print(max_iter[j])
-            kf = KFold(n_splits=5)
+            kf = KFold(n_splits=3)
             score = 0
             for train_index, validate_index in kf.split(X_train):    
                 clf = SVC(C=C[i], max_iter=max_iter[j], gamma = 'scale')
                 clf.fit(X_train[train_index,:], y_train[train_index])
                 score += clf.score(X_train[validate_index,:], y_train[validate_index])
-            score = score/5.0
+            score = score/3.0
             scoresSVM[i,j] = score
             
     maxIndxSVM = (numpy.argmax(scoresSVM)%scoresSVM.shape[0],
@@ -183,27 +182,26 @@ if __name__ == "__main__":
     #itertools.combinations([1,2,3], 2)
     
     #itertools.combinations_with_replacement([1,2,3,4,5], 5)
-    nbMaxLayers = numpy.arange(1,5) 
-    nbMaxNeurons = numpy.arange(2,12) * 4
+    nbMaxLayers = numpy.arange(2,5) 
+    nbMaxNeurons = numpy.arange(2,8) * 16
     
     scoresNN = numpy.zeros((len(nbMaxLayers), len(nbMaxNeurons)))
     
     
-    for i in nbMaxLayers:
-        print(i)
+    for i in range(len(nbMaxLayers)):
         for j in range(len(nbMaxNeurons)):
             kf = KFold(n_splits=3)
             score = 0
             for train_index, validate_index in kf.split(X_train):    
-                clf = MLPClassifier(hidden_layer_sizes=tuple(numpy.ones(i, dtype=numpy.int8) * nbMaxNeurons[j]), max_iter=100, activation='logistic')
+                clf = MLPClassifier(hidden_layer_sizes=numpy.ones(nbMaxLayers[i], dtype=numpy.int32) * nbMaxNeurons[j], max_iter=100)
                 clf.fit(X_train[train_index,:], y_train[train_index])
                 score += clf.score(X_train[validate_index,:], y_train[validate_index])
             score = score/3.0
-            scoresNN[i-1,j-1] = score
+            scoresNN[i,j] = score
             
-    maxIndxNN = (numpy.argmax(scoresNN)%scoresNN.shape[0],
-               numpy.argmax(scoresNN) - (numpy.argmax(scoresNN)%scoresNN.shape[0])*scoresNN.shape[1])
-    
+    #maxIndxNN = (numpy.argmax(scoresNN)%scoresNN.shape[0],
+    #           numpy.argmax(scoresNN) - (numpy.argmax(scoresNN)%scoresNN.shape[0])*scoresNN.shape[1])
+    maxIndxNN = numpy.unravel_index(numpy.argmax(scoresNN), scoresNN.shape)
     
     '''
     neoronShapes = numpy.array([])
@@ -234,14 +232,20 @@ if __name__ == "__main__":
     clf = KNeighborsClassifier(n_neighbors=kvalues[maxIndxKNN[0]], weights=weights[maxIndxKNN[1]])
     clf.fit(X_train, y_train)
     print('KNN : ' + str(clf.score(X_test, y_test)))
+    print('k : '+str(kvalues[maxIndxKNN[0]]))
+    print('weights : '+str(weights[maxIndxKNN[1]]))
     
     clf = SVC(C=C[maxIndxSVM[0]], max_iter=max_iter[maxIndxSVM[1]], gamma = 'scale')
     clf.fit(X_train, y_train)
     print('SVM : ' + str(clf.score(X_test, y_test)))
+    print('C : '+str(C[maxIndxSVM[0]]))
+    print('max iter : '+str(max_iter[maxIndxSVM[1]]))
     
-    clf = MLPClassifier(hidden_layer_sizes=tuple(numpy.ones(nbMaxLayers[maxIndxNN[0]], dtype=numpy.int8) * nbMaxNeurons[maxIndxNN[1]]), max_iter=100, activation='logistic')
+    clf = MLPClassifier(hidden_layer_sizes=tuple(numpy.ones(nbMaxLayers[maxIndxNN[0]], dtype=numpy.int32) * nbMaxNeurons[maxIndxNN[1]]), max_iter=100)
     clf.fit(X_train, y_train)
-    print('SVM : ' + str(clf.score(X_test, y_test)))
+    print('NN : ' + str(clf.score(X_test, y_test)))
+    print('nb layers : '+str(nbMaxLayers[maxIndxNN[0]]))
+    print('nb neuron : '+str(nbMaxNeurons[maxIndxNN[1]]))
     
 
     _times.append(time.time())
